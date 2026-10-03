@@ -1,0 +1,16 @@
+<!-- Tinto · "Formato da hora" quando está em 24 h, 15 px.
+
+     NOSSO, não é Phosphor: o conjunto não tem relógio digital, e aqui o
+     ícone precisa CONTRASTAR com o analógico da linha vizinha.
+
+     A escolha é a convenção, não a decoração: mostrador de 12 é o
+     analógico (ICO_RELOGIO, redondo), e 24 h é o número — display com
+     dois-pontos. Em 15 px as duas silhuetas são inconfundíveis: uma é
+     redonda, a outra é retangular. Dígitos de verdade viram mancha nesse
+     tamanho (testado), então o dois-pontos sozinho carrega a ideia. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <g stroke="#000" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <rect x="26" y="62" width="204" height="132" rx="22"/>
+    <path d="M128 108 v0 M128 152 v0" stroke-width="32"/>
+  </g>
+</svg>

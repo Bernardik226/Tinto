@@ -1,0 +1,39 @@
+# Tinto — tabela de partições. 16 MB de flash (N16R8).
+#
+# ⚠️ DECISÃO IRREVERSÍVEL, e é por isso que ela entra ANTES do OTA existir.
+# Mudar esta tabela depois APAGA A FLASH e quebra a atualização de qualquer
+# aparelho já em campo — e um aparelho na casa de outra pessoa não se
+# corrige por deploy. As duas partições de app são obrigatórias desde a
+# primeira gravação, mesmo com o OTA só chegando na Etapa 10.
+#
+# ota_0 e ota_1 têm o MESMO tamanho de propósito: o rollback grava na
+# inativa e reinicia. Se uma fosse menor, um firmware que crescesse
+# deixaria de caber justamente no dia em que a volta é necessária.
+#
+# Nome,     Tipo, Subtipo,  Offset,   Tamanho,  Flags
+nvs,        data, nvs,      0x9000,   0x6000,
+otadata,    data, ota,      0xf000,   0x2000,
+phy_init,   data, phy,      0x11000,  0x1000,
+
+# ── a chave da NVS, RESERVADA e vazia ────────────────────────────────
+#
+# Ela entra hoje pelo MESMO motivo que `ota_0` e `ota_1` entraram antes de
+# existir OTA: criptografar a NVS exige esta partição, e criá-la depois
+# apaga a flash de todo aparelho que já existir.
+#
+# Os segredos — senha do Wi-Fi, prova e token — saíram do microSD e foram
+# para a `nvs` em 2026-09-03. Isso resolve o ataque real, que é puxar o
+# cartão. Não resolve o dump da flash: para isso é preciso
+# `CONFIG_NVS_ENCRYPTION`, que exige criptografia de flash e ESTA chave.
+#
+# Ligar a criptografia é decisão de outro dia e é irreversível por
+# aparelho. Reservar 4 KB hoje é o que mantém esse dia possível.
+#
+# Cabe no vão que já existia entre `phy_init` (acaba em 0x12000) e `ota_0`
+# (começa em 0x20000): nenhum offset se mexe, e a NVS em 0x9000 continua
+# exatamente onde está — com o que já houver dentro dela.
+nvs_key,    data, nvs_keys, 0x12000,  0x1000,   encrypted
+ota_0,      app,  ota_0,    0x20000,  0x300000,
+ota_1,      app,  ota_1,    0x320000, 0x300000,
+# o que sobra: espaço pro que vier. Não vira partição agora porque
+# partição criada "por precaução" é partição que engessa a tabela.

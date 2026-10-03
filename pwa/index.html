@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="pt-BR" data-tema="sistema">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Tinto</title>
+<link rel="manifest" href="/e/manifest.json">
+<link rel="icon" href="/e/icone-192.png">
+<link rel="apple-touch-icon" href="/e/apple-touch-icon.png">
+<meta name="theme-color" content="#111111">
+<link rel="stylesheet" href="/e/app.css">
+</head>
+<body>
+
+<!-- ── a ENTRADA ────────────────────────────────────────────────────
+     Ela não é uma rota: é o que existe antes de haver sessão, e some
+     depois do primeiro login. O papel do fundo gira atrás e nunca fica
+     entre o dedo e o botão. -->
+<section id="entrada" hidden>
+  <div class="papel" aria-hidden="true"><i></i><i></i><i></i></div>
+  <div class="capa">
+    <span class="logo grande">Tinto</span>
+    <h1>A sua agenda, fora do celular.</h1>
+    <p>Entre com a conta Google da sua agenda. A voz e o acervo ficam nesta
+       conta e valem para todos os seus Tintos.</p>
+    <a class="botao forte" href="/e/google">Entrar com o Google</a>
+    <button class="botao nu" id="instalar" hidden>Instalar o aplicativo</button>
+  </div>
+</section>
+
+<!-- ── a MOLDURA ────────────────────────────────────────────────────
+     Uma árvore de rotas só — conta e acervo — desenhada duas vezes: em
+     barra de baixo no celular e em menu lateral no desktop. Mesmos
+     destinos, mesma ordem, mesmos rótulos. -->
+<div id="app" hidden>
+  <nav class="lado" aria-label="Seções">
+    <div class="lado-topo"><span class="logo">Tinto</span>
+      <button class="lua" type="button" aria-label="Tema escuro" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.5A8.5 8.5 0 0 1 8.5 4a8.5 8.5 0 1 0 11.5 11.5Z"/></svg></button></div>
+    <a class="destino" href="#/conta" data-rota="conta">
+      <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 21c0-5 3-8 8-8s8 3 8 8Z"/></svg></span>Minha Conta</a>
+    <a class="destino" href="#/acervo" data-rota="acervo">
+      <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" d="M12 20V6c-3-2-6-3-10-2v14c4-1 7 0 10 2Zm0 0V6c3-2 6-3 10-2v14c-4-1-7 0-10 2Z"/></svg></span>Meu Acervo</a>
+    <div class="conta-lado">
+      <div id="conta-lado"></div>
+      <button class="sair" id="sair-lado" type="button">
+        <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" d="M15 4h4v16h-4M11 8l-4 4 4 4M7 12h9"/></svg></span>Sair</button>
+    </div>
+  </nav>
+
+  <header class="topo">
+    <span class="logo">Tinto</span>
+    <div class="topo-dir"><button class="lua" type="button" aria-label="Tema escuro" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.5A8.5 8.5 0 0 1 8.5 4a8.5 8.5 0 1 0 11.5 11.5Z"/></svg></button>
+    <button class="iniciais" id="iniciais" type="button"
+            aria-haspopup="true" aria-expanded="false"
+            aria-label="A sua conta"></button></div>
+    <div class="gaveta" id="gaveta" hidden>
+      <div class="quem" id="gaveta-quem"></div>
+      <button class="sair" id="sair-topo" type="button">
+        <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" d="M15 4h4v16h-4M11 8l-4 4 4 4M7 12h9"/></svg></span>Sair desta conta</button>
+    </div>
+  </header>
+
+  <main id="palco" tabindex="-1"></main>
+
+  <nav class="barra" aria-label="Seções">
+    <a class="destino" href="#/conta" data-rota="conta">
+      <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 21c0-5 3-8 8-8s8 3 8 8Z"/></svg></span>Minha Conta</a>
+    <a class="destino" href="#/acervo" data-rota="acervo">
+      <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" d="M12 20V6c-3-2-6-3-10-2v14c4-1 7 0 10 2Zm0 0V6c3-2 6-3 10-2v14c-4-1-7 0-10 2Z"/></svg></span>Meu Acervo</a>
+  </nav>
+</div>
+
+<div id="aviso" role="status" aria-live="polite" hidden></div>
+
+<script src="/e/app.js"></script>
+</body>
+</html>

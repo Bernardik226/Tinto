@@ -1,0 +1,19 @@
+<!-- Tinto · categoria "Hora e tela" dos Ajustes, 22 px.
+
+     NOSSO, não é Phosphor: o conjunto tem relógio e tem monitor, mas não
+     tem os dois juntos, e a categoria é sobre as duas coisas ao mesmo
+     tempo — relógio e bloqueio. A lua que estava aqui só falava do
+     sleep.
+
+     SEM círculo de mostrador, e isso é a decisão que faz o ícone existir:
+     em 22 px o círculo interno fica com 4 px de raio e vira mancha (foi
+     testado). A moldura da tela É o mostrador, e os dois ponteiros
+     saindo do centro em L bastam para ler "relógio". A base embaixo é o
+     que impede de ler como relógio quadrado. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <g fill="none" stroke="#000" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="24" y="36" width="208" height="150" rx="20"/>
+    <path d="M128 212 v-26 M92 212 h72"/>
+    <path d="M128 114 v-40 M128 114 h38"/>
+  </g>
+</svg>

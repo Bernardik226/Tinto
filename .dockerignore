@@ -1,0 +1,3 @@
+# O servidor só precisa de backend/ e pwa/ (ver Dockerfile). Os geradores
+# de ícone do app são ferramenta de quem desenvolve, não do servidor.
+pwa/ferramentas/

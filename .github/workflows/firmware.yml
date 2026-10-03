@@ -1,0 +1,66 @@
+# O build da placa, no container oficial da Espressif.
+#
+# Ele NÃO grava nada — gravar é na bancada, com o vidro na frente. O que
+# este workflow prova é que o firmware compila, e guarda o `.bin` de cada
+# commit como artefato: dá para baixar a versão de qualquer ponto do
+# histórico sem reconstruir o ambiente.
+name: firmware
+
+on:
+  push:
+    paths:
+      - "firmware/**"
+      - ".github/workflows/firmware.yml"
+
+jobs:
+  build:
+    name: idf.py build
+    runs-on: ubuntu-latest
+    container: espressif/idf:v5.3
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Nem o endereço do servidor nem o QR que nasce dele vão para o
+      # repositório: os dois são de quem monta o aparelho. Aqui vale o do
+      # exemplo — este job prova que o firmware COMPILA, e não que ele
+      # fala com alguém.
+      # O endereço do servidor não vai versionado — ele é de quem monta o
+      # aparelho. `.invalid` é o TLD que a RFC 2606 reserva para exemplos:
+      # não resolve, nunca vai resolver, e não é de ninguém.
+      - name: o servidor de exemplo
+        shell: bash
+        run: |
+          sed 's|https://mude-isto.exemplo.com|https://ci.exemplo.invalid|' \
+            firmware/main/servidor.exemplo.h > firmware/main/servidor.h
+
+      # `idf.py` não vê arquivo novo sozinho: o CMakeLists usa GLOB, e o
+      # glob é resolvido no configure. Sem o `reconfigure`, um arquivo
+      # novo em `ui/` ou `tela/` falha no link com `undefined reference` a
+      # uma função que existe.
+      # O QR é gerado DEPOIS do `export.sh` e antes do `reconfigure`.
+      #
+      # Depois, porque o `python3` do container não tem pip: quem tem é o
+      # venv do IDF, e é o `export.sh` que o põe no PATH. Antes, porque o
+      # `CMakeLists` usa GLOB — um `qr.c` que aparece depois do configure
+      # não entra no build, e o link falha com `undefined reference` a uma
+      # função que existe.
+      - name: o QR, e o build
+        shell: bash
+        run: |
+          . $IDF_PATH/export.sh
+          pip install --quiet segno
+          python firmware/ferramentas/qr.py
+          cd firmware
+          idf.py reconfigure
+          idf.py build
+
+      - name: o binário deste commit
+        uses: actions/upload-artifact@v4
+        with:
+          name: tinto-${{ github.sha }}
+          path: |
+            firmware/build/tinto.bin
+            firmware/build/bootloader/bootloader.bin
+            firmware/build/partition_table/partition-table.bin
+          retention-days: 30

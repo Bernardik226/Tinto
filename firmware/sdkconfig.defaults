@@ -1,0 +1,69 @@
+# Tinto — a configuração que o projeto precisa, versionada.
+#
+# ENGENHARIA §5: a versão do ESP-IDF é FIXADA no README do firmware e no
+# CI. Atualizar IDF é um commit próprio, nunca de carona.
+
+CONFIG_IDF_TARGET="esp32s3"
+
+# PSRAM octal do N16R8. O bitmap da tela (12,5 KB) e os buffers de áudio e
+# HTTP moram aqui, alocados UMA VEZ no boot (ENGENHARIA §3).
+CONFIG_ESP32S3_SPIRAM_SUPPORT=y
+CONFIG_SPIRAM_MODE_OCT=y
+CONFIG_SPIRAM_SPEED_80M=y
+CONFIG_SPIRAM_ALLOW_BSS_SEG_EXTERNAL_MEMORY=y
+
+# 16 MB de flash, com a tabela de partições do projeto
+CONFIG_ESPTOOLPY_FLASHSIZE_16MB=y
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+
+# RN-72: o firmware novo tem 60 s pra se declarar são, ou o bootloader
+# volta sozinho pra versão anterior. Sem isso, um firmware que trava no
+# boot é um brick remoto — simultâneo, em todo mundo, sem volta.
+CONFIG_BOOTLOADER_APP_ROLLBACK_ENABLE=y
+CONFIG_BOOTLOADER_WDT_ENABLE=y
+CONFIG_BOOTLOADER_WDT_TIME_MS=9000
+
+# O cristal externo de 32.768 kHz: ~1,7 s de erro por dia contra ~1 hora
+# do RC interno. É ele que faz o relógio sobreviver ao deep sleep.
+CONFIG_RTC_CLK_SRC_EXT_CRYS=y
+CONFIG_RTC_CLK_CAL_CYCLES=3000
+
+# As três tasks do ENGENHARIA §1 são criadas à mão, com as pilhas de lá.
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=4096
+CONFIG_FREERTOS_HZ=1000
+
+# Os caminhos internos passam de 8.3. O buffer de LFN fica na pilha para
+# preservar a regra de nenhuma alocação dinâmica depois do boot.
+CONFIG_FATFS_LFN_STACK=y
+CONFIG_FATFS_MAX_LFN=64
+CONFIG_FATFS_API_ENCODING_UTF_8=y
+# CONFIG_FATFS_LFN_HEAP is not set
+# CONFIG_FATFS_LFN_NONE is not set
+
+# ── o mbedTLS aloca na PSRAM ─────────────────────────────────────────
+#
+# Sem isto, TODA conexão HTTPS falha com `mbedtls_ssl_setup returned
+# -0x7F00` (ALLOC_FAILED) — e o `esp_http_client` a reporta como
+# `ESP_ERR_HTTP_CONNECT`, o erro genérico que parece rede fora do ar.
+#
+# A heap livre dizia 8 MB e a alocação falhava porque são duas memórias:
+# esses 8 MB são PSRAM, e o mbedTLS pedia DRAM INTERNA — da qual sobravam
+# 23 KB depois do Wi-Fi, do e-ink e do FATFS. O handshake precisa de ~40.
+#
+# `SSL_IN_CONTENT_LEN` de 16 KB é o que mais pesa, e baixá-lo quebraria
+# servidores que mandam certificado grande. Mover a alocação para a PSRAM
+# resolve sem cortar nada — e é para isto que ela existe neste aparelho.
+CONFIG_MBEDTLS_EXTERNAL_MEM_ALLOC=y
+
+# O Wi-Fi e o lwIP também, pela mesma razão: eles são os maiores
+# consumidores de DRAM interna, e é ela que falta.
+CONFIG_SPIRAM_TRY_ALLOCATE_WIFI_LWIP=y
+
+# O Tinto troca mensagens pequenas (agenda, voz e acervo), não tráfego de
+# alta vazão. Manter as rotinas quentes de TX/RX do Wi-Fi em IRAM gastava
+# mais de 27 KiB para throughput que o produto não usa e deixava apenas
+# 1 byte livre. Executá-las da flash preserva o comportamento da rede e
+# devolve margem para a evolução do firmware.
+# CONFIG_ESP_WIFI_IRAM_OPT is not set
+# CONFIG_ESP_WIFI_RX_IRAM_OPT is not set

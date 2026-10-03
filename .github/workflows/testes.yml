@@ -1,0 +1,68 @@
+# Os testes, em todo push. É o guarda-corpo real do projeto.
+#
+# Os do firmware rodam no PC, sem placa: o `firmware/simulador/` é um HAL falso que
+# liga o aparelho, recebe eventos e desenha telas de verdade num bitmap. É
+# isso que permite mexer em navegação e política de refresh sem gravar a
+# placa a cada tentativa.
+name: testes
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  firmware:
+    name: firmware · a suíte no PC
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # O endereço do servidor NÃO está no repositório — ele é de quem
+      # monta o aparelho. Aqui vale o do exemplo: o CI não fala com
+      # servidor nenhum, e o que ele precisa é que o QR compile.
+      - name: um servidor de mentira, só para o build fechar
+        run: |
+          # `.invalid` é o TLD reservado para exatamente isto (RFC 2606):
+          # ele não resolve, nunca vai resolver, e não é de ninguém. O
+          # gerador do QR recusa o endereço do `.exemplo.h` de propósito —
+          # um QR apontando para "mude-isto" é pior que QR nenhum.
+          sed 's|https://mude-isto.exemplo.com|https://ci.exemplo.invalid|' \
+            firmware/main/servidor.exemplo.h > firmware/main/servidor.h
+
+      # `segno` gera o QR a partir do endereço acima. Os outros geradores
+      # (fontes, ícones, logo) não rodam aqui: o `.c` deles vai versionado,
+      # e o `--check` avisa e segue quando Pillow não está instalado.
+      - name: o que os geradores precisam
+        run: pip install segno
+
+      # gcc e make bastam para o resto. O build de PC não toca em uma
+      # linha de ESP-IDF, e é essa fronteira que mantém o harness possível.
+      - name: compilar e rodar
+        run: make test
+
+  backend:
+    name: backend · contrato e modelo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          # O caminho é explícito porque o arquivo se chama
+          # `requisitos.txt`: o padrão do cache procura `requirements.txt`
+          # e falha o job inteiro quando não acha — que é o que fazia esta
+          # suíte nunca chegar a rodar, e o deploy nunca disparar.
+          cache: pip
+          cache-dependency-path: backend/requisitos.txt
+
+      - name: instalar
+        working-directory: backend
+        run: pip install -r requisitos.txt
+
+      # Estes testes não defendem o servidor: defendem o PARSER DO
+      # DEVICE, que está gravado em placas e não se corrige por deploy.
+      # Cada asserção corresponde a uma linha de `dado/contrato.c`.
+      - name: pytest
+        working-directory: backend
+        run: python -m pytest testes/ -q

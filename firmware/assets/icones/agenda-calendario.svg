@@ -1,0 +1,10 @@
+<!-- Tinto · cartão Agenda da Home. Desenhado para 44 px: cada coordenada
+     inteira cai numa fronteira de pixel, e o traço de 2 px sobre um eixo
+     inteiro cobre exatamente duas colunas. Não redimensionar. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44" width="44" height="44">
+  <g fill="none" stroke="#000" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter">
+    <rect x="4" y="9" width="36" height="30"/>
+    <path d="M4 18h36M13 4v10M31 4v10"/>
+    <path d="M9 25h6M19 25h6M29 25h6M9 32h6M19 32h6M29 32h6"/>
+  </g>
+</svg>

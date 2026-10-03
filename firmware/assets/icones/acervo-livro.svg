@@ -1,0 +1,12 @@
+<!-- Tinto · cartão Acervo da Home. Duas folhas fechadas com uma calha
+     branca de 4 px no meio, em vez de lombada desenhada: três traços de
+     2 px convergindo num ponto viravam um funil preto de 6 px de largura.
+     As bordas saem horizontais dos cantos externos (curva quadrática com
+     o controle na mesma altura) — canto em ângulo deixava um furo de
+     1 px que, no cartão em foco, aparece como sujeira preta. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44" width="44" height="44">
+  <g fill="none" stroke="#000" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter">
+    <path d="M4 9 Q12 9 19 12 L19 35 Q12 32 4 32 Z"/>
+    <path d="M40 9 Q32 9 25 12 L25 35 Q32 32 40 32 Z"/>
+  </g>
+</svg>

@@ -1,0 +1,40 @@
+# build
+build/
+firmware/build/
+*.o
+*.d
+*.su
+*.elf
+*.map
+*.bin
+
+# ESP-IDF
+sdkconfig.old
+dependencies.lock
+managed_components/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# segredos: as chaves moram nas variáveis de ambiente do servidor
+.env
+*.env
+!.env.exemplo
+
+# o estado do servidor (contas e refresh tokens)
+backend/estado*.json
+
+# o endereço do SEU servidor, e o QR gerado a partir dele
+firmware/main/servidor.h
+firmware/main/tela/qr.c
+firmware/main/tela/qr.h
+
+# telas geradas por `make provas`
+docs/provas/
+
+# sistema
+.DS_Store
+*.swp

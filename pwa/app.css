@@ -1,0 +1,564 @@
+/* Tinto — o PWA.
+ *
+ * O desenho é o das telas aprovadas da fase 4
+ * (`tinto-pwa-entrada-simples.html` e irmãs), transposto do quadro fixo
+ * de 390×710 do desenho para uma página que estica. O que NÃO muda na
+ * transposição, porque é a linguagem:
+ *
+ *   · o LOGOTIPO é a palavra em serifa pesada, com o pingo do "i"
+ *     desenhado — um quadrado vazado e um ponto cheio, e não uma fonte
+ *     que por acaso tem pingo
+ *   · TÍTULO é serifa; texto corrido e rótulo são sem serifa
+ *   · borda de 2 px, ângulo reto, zero gradiente e zero sombra colorida
+ *   · o papel do fundo gira devagar e nunca cobre um botão
+ *
+ * Brutalismo editorial: a hierarquia vem do tamanho e do peso, não de
+ * cor. É a mesma régua do aparelho, que é uma tela de tinta.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  --papel:  light-dark(#fbfbf8, #111111);
+  --tinta:  light-dark(#111111, #f4f1e8);
+  --fraca:  light-dark(#555550, #a5a29a);
+  --caixa:  light-dark(#ffffff, #171717);
+  --sombra: light-dark(#d2d2ca, #4c4c47);
+  --risco:  light-dark(#8a1c1c, #ff8f8f);
+
+  --serifa: "DejaVu Serif", Georgia, "Times New Roman", serif;
+  --sem:    "DejaVu Sans", system-ui, Arial, sans-serif;
+
+  --margem: 18px;
+  --topo-altura: 66px;
+  --barra-altura: 64px;
+}
+
+html[data-tema="claro"]  { color-scheme: light; }
+html[data-tema="escuro"] { color-scheme: dark; }
+
+* { box-sizing: border-box; }
+
+/* ── `hidden` VENCE o display ─────────────────────────────────────────
+ *
+ * `#entrada { display: grid }` anula o atributo `hidden` do HTML, e as
+ * duas telas — a entrada e a moldura — apareciam empilhadas, uma abaixo
+ * da outra, no celular.
+ *
+ * É o `display` da regra de classe ganhando do `display:none` que o
+ * `hidden` traz do navegador. Sem esta linha, esconder qualquer coisa
+ * neste arquivo depende de lembrar que a regra existe. */
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  background: var(--papel);
+  color: var(--tinta);
+  font: 14px/1.5 var(--sem);
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible { outline: 3px solid var(--tinta); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* ── o logotipo ──────────────────────────────────────────────────────
+ *
+ * A MARCA OFICIAL, e não uma imitação em CSS.
+ *
+ * Era uma imitação: a palavra numa serifa pesada com o pingo do "i"
+ * montado com dois pseudo-elementos em posição fixa — `left: 27px` para
+ * o quadrado, `left: 31px` para o ponto. Isso só fecha numa máquina que
+ * tenha DejaVu Serif. No celular a fonte cai no Georgia ou no Times, a
+ * palavra muda de largura, e o quadrado vai parar em cima do "T".
+ *
+ * Aqui ela é o pixel do asset (`pwa/ferramentas/logo_pwa.py`), usado como
+ * MÁSCARA: a cor vem do `currentColor`, então a mesma imagem serve o
+ * tema claro e o escuro. A proporção é a da marca — 309×128 —, e as
+ * medidas abaixo só escolhem a ALTURA. */
+.logo {
+  display: inline-block; height: 31px; width: calc(31px * 309 / 128);
+  background: currentColor; color: var(--tinta); vertical-align: middle;
+  -webkit-mask: url("/e/logo.png") no-repeat center / contain;
+          mask: url("/e/logo.png") no-repeat center / contain;
+  font-size: 0;   /* o texto continua lá para quem lê por áudio */
+}
+
+.logo.grande { height: 64px; width: calc(64px * 309 / 128); }
+
+/* ── a entrada ─────────────────────────────────────────────────────── */
+#entrada {
+  min-height: 100dvh; position: relative; overflow: hidden;
+  padding: 44px 24px calc(28px + env(safe-area-inset-bottom));
+  display: grid; align-content: center; justify-items: start;
+}
+.capa { position: relative; z-index: 2; max-width: 34rem; }
+.capa h1 {
+  font: 700 clamp(28px, 8vw, 31px)/1.02 var(--serifa);
+  max-width: 20ch; margin: 48px 0 13px;
+}
+.capa p { font-size: 14px; line-height: 1.5; max-width: 34ch;
+          margin: 0 0 31px; color: var(--fraca); }
+
+/* O papel do fundo: três folhas girando devagar, com opacidade baixa.
+   `pointer-events:none` porque ele NUNCA pode ficar entre o dedo e o
+   botão — a animação não bloqueia entrar. */
+.papel { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.papel i {
+  position: absolute; display: block; border: 1px solid var(--tinta);
+  opacity: .24; animation: deriva 12s ease-in-out infinite alternate;
+}
+.papel i:nth-child(1) { width: 235px; height: 235px; top: -70px; right: -90px; transform: rotate(12deg); }
+.papel i:nth-child(2) { width: 155px; height: 155px; left: -78px; bottom: 96px; transform: rotate(-9deg); animation-delay: -5s; }
+.papel i:nth-child(3) { width: 52px; height: 52px; right: 38px; bottom: 188px; border-width: 2px; animation-delay: -8s; }
+@keyframes deriva {
+  from { transform: translateY(-4px) rotate(8deg); }
+  to   { transform: translateY(10px) rotate(13deg); }
+}
+
+/* ── botões ─────────────────────────────────────────────────────────── */
+.botao {
+  display: block; width: 100%; min-height: 50px;
+  border: 2px solid var(--tinta); background: var(--caixa); color: var(--tinta);
+  font: 700 14px/1 var(--sem); cursor: pointer;
+  padding: 16px; text-align: center; text-decoration: none;
+  position: relative; z-index: 2;
+}
+.botao.forte { background: var(--tinta); color: var(--papel); }
+.botao.nu { border: 0; background: transparent; padding: 15px 0;
+            font-size: 12px; }
+.botao:disabled { opacity: .5; cursor: default; }
+
+/* ── a moldura ──────────────────────────────────────────────────────── */
+/* `minmax(0, 1fr)` e não `1fr`: a coluna de grade não encolhe abaixo do
+   min-content do que está dentro dela, e um `<input>` sem `size` mede
+   quase 180 px de min-content. Seis deles empurravam a página para
+   1.100 px de largura NO CELULAR — a moldura inteira saía pela direita,
+   com o cabeçalho cortado e a barra de baixo mais larga que a tela. */
+#app {
+  min-height: 100dvh; display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  padding-top: var(--topo-altura);
+  padding-bottom: calc(var(--barra-altura) + env(safe-area-inset-bottom));
+}
+.lado { display: none; }
+
+/* O cabeçalho: 66 px, logo pequeno à esquerda e as iniciais num
+   quadrado à direita. Ele é a moldura do aplicativo inteiro. */
+.topo {
+  height: var(--topo-altura); border-bottom: 2px solid var(--tinta);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 var(--margem); position: fixed; top: 0; left: 0; right: 0;
+  background: var(--papel); z-index: 3;
+}
+.conta-lado { display: none; }   /* no celular a conta é a própria tela */
+
+/* ── sair ────────────────────────────────────────────────────────────
+ *
+ * Duas formas do mesmo botão, porque são duas molduras: no desktop ele
+ * mora no pé do menu, ao lado do e-mail; no celular ele abre do avatar,
+ * que é o único lugar da moldura que fala da pessoa.
+ *
+ * Sair é a ÚNICA coisa que encerra a sessão — nem prazo, nem deploy. Por
+ * isso ele existe visível nas duas, e não escondido dentro de uma tela. */
+.sair {
+  display: flex; align-items: center; gap: 8px;
+  border: 0; background: transparent; color: var(--tinta);
+  font: 700 12px/1 var(--sem); padding: 10px 0; cursor: pointer;
+  width: 100%; text-align: left;
+}
+.sair .ico { width: 18px; height: 18px; display: block; }
+.sair .ico svg { width: 100%; height: 100%;
+                 fill: none; stroke: currentColor; stroke-width: 1.8; }
+
+/* A gaveta do avatar: um cartão que cai do cabeçalho, alinhado à direita
+   dele. Ela é do CELULAR — no desktop o cabeçalho não existe. */
+.gaveta {
+  position: absolute; right: var(--margem); top: 60px; z-index: 4;
+  border: 2px solid var(--tinta); background: var(--caixa);
+  padding: 12px 14px; min-width: 15rem; max-width: calc(100vw - 2 * var(--margem));
+}
+.gaveta .quem { font-size: 11px; color: var(--fraca);
+                overflow-wrap: anywhere; margin-bottom: 8px;
+                padding-bottom: 8px; border-bottom: 1px solid var(--sombra); }
+
+.topo-dir { display: flex; gap: 8px; }
+.lado-topo { display: flex; align-items: center; justify-content: space-between; }
+/* A lua é do mesmo quadrado das iniciais, e se pinta cheia no escuro. */
+.lua svg { width: 16px; height: 16px; fill: currentColor; }
+.lua[aria-pressed="true"] { background: var(--tinta); color: var(--papel); }
+.iniciais, .lua {
+  width: 34px; height: 34px; border: 2px solid var(--tinta);
+  display: grid; place-items: center; font: 700 12px/1 var(--sem);
+  background: var(--caixa); color: var(--tinta); cursor: pointer;
+  padding: 0;
+}
+.iniciais[aria-expanded="true"] { background: var(--tinta); color: var(--papel); }
+
+main {
+  padding: 22px var(--margem) 32px;
+  max-width: 46rem; width: 100%; margin: 0 auto;
+}
+
+h1 { font: 700 30px/.98 var(--serifa); letter-spacing: -1px; margin: 0 0 7px; }
+.email {
+  font-size: 12px; color: var(--fraca); overflow-wrap: anywhere;
+  padding-bottom: 15px; border-bottom: 2px solid var(--tinta);
+  margin-bottom: 30px;
+}
+h2 { font: 700 11px/1 var(--sem); letter-spacing: 1px;
+     text-transform: uppercase; margin: 26px 0 9px; }
+
+/* A barra de baixo: 64 px, duas colunas, divisória de 1 px entre elas. */
+.barra {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  height: calc(var(--barra-altura) + env(safe-area-inset-bottom));
+  border-top: 2px solid var(--tinta); background: var(--caixa);
+  display: grid; grid-template-columns: 1fr 1fr;
+  padding-bottom: env(safe-area-inset-bottom); z-index: 5;
+}
+.barra .destino {
+  display: grid; place-items: center; align-content: center; gap: 4px;
+  border-right: 1px solid var(--tinta);
+  font: 400 10px/1 var(--sem); text-decoration: none; color: var(--tinta);
+}
+.barra .destino:last-child { border-right: 0; }
+.barra .destino[aria-current="page"] { background: var(--tinta); color: var(--papel); }
+/* Os ícones são os DESENHOS aprovados — a pessoa e o livro aberto —, e
+   não caracteres. Eram "◉" e "▤": glifos que cada sistema desenha à sua
+   maneira, e que no Android saem em outro peso e outro tamanho, quando
+   não saem como quadrado vazio. */
+.destino .ico { width: 23px; height: 23px; display: block; }
+.destino .ico svg {
+  width: 100%; height: 100%;
+  fill: currentColor; stroke: currentColor; stroke-width: 1.7;
+}
+.destino .ico svg [fill="none"] { fill: none; }
+
+/* ── no celular, só o CONTEÚDO rola ───────────────────────────────────
+ * A página inteira rolava, e o efeito mola do iOS/Android arrastava junto
+ * a barra de cima e a de baixo. Agora a página fica parada e o <main> é
+ * quem rola entre as barras, com a mola presa nele. O campo focado (o
+ * código do aparelho) continua subindo para ficar à vista do teclado:
+ * o navegador rola até ele dentro do <main>. A entrada (login) não muda. */
+@media (max-width: 61.99rem) {
+  html:has(#app:not([hidden])),
+  html:has(#app:not([hidden])) body { height: 100%; overflow: hidden;
+                                       overscroll-behavior: none; }
+  /* Os filtros numa linha só, deslizando se não couberem; o + fica na
+     ponta, sempre à vista, e perde o rótulo. */
+  .filtros { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .filtros::-webkit-scrollbar { display: none; }
+  .filtros button { flex: none; }
+  .filtros .direita { position: sticky; right: 0; min-width: 34px;
+                      box-shadow: -6px 0 0 var(--papel); }
+  .so-largo { display: none; }
+
+  #app main {
+    position: fixed; left: 0; right: 0; top: var(--topo-altura);
+    bottom: calc(var(--barra-altura) + env(safe-area-inset-bottom));
+    overflow-y: auto; -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    max-width: none; margin: 0;
+    padding-inline: max(var(--margem), calc((100% - 46rem) / 2));
+  }
+}
+
+@media (min-width: 62rem) {
+  #app {
+    grid-template-columns: 16rem minmax(0, 1fr);
+    padding-top: 0; padding-bottom: 0;
+  }
+  .barra { display: none; }
+  .topo { grid-column: 2; }
+  .lado {
+    display: flex; flex-direction: column; padding: var(--margem);
+    border-right: 2px solid var(--tinta);
+    position: sticky; top: 0; height: 100dvh; grid-row: 1 / 3;
+  }
+  .lado .destino {
+    display: block; margin-top: 16px; padding: 11px 12px;
+    border: 2px solid transparent; text-decoration: none;
+    color: var(--tinta); font: 700 13px/1 var(--sem); letter-spacing: .5px;
+  }
+  .lado .destino[aria-current="page"] { border-color: var(--tinta); }
+  /* No desktop o cabeçalho SOME. A marca fica no menu, e a conta desce
+     para o pé dele — é o desenho aprovado, e é o que resolve a marca
+     aparecendo duas vezes na mesma altura da tela. */
+  .topo { display: none; }
+  main { padding-top: 34px; }
+  .conta-lado {
+    display: block; margin-top: auto;
+    border-top: 1px solid var(--tinta); padding: 14px 5px 2px;
+    font-size: 11px; line-height: 1.45; overflow-wrap: anywhere;
+  }
+  .conta-lado strong { font-size: 12px; }
+
+  .lado .destino { display: grid; grid-template-columns: 26px 1fr;
+                   gap: 9px; align-items: center; }
+  .lado .destino .ico { width: 22px; height: 22px; }
+  main { padding-bottom: 40px; }
+}
+
+/* ── o vazio de dispositivo ─────────────────────────────────────────── */
+.sem-tinto { text-align: center; padding: 8px 0 4px; }
+.desenho-tinto {
+  width: 72px; height: 110px; border: 3px solid var(--tinta);
+  margin: 0 auto 24px; position: relative;
+}
+.desenho-tinto::after {
+  content: ""; position: absolute; width: 8px; height: 8px;
+  border: 2px solid var(--tinta); bottom: 7px; left: 29px;
+}
+.sem-tinto h3 { font: 700 23px/1.05 var(--serifa); margin: 0 0 9px; }
+.sem-tinto p { font-size: 13px; line-height: 1.45; color: var(--fraca);
+               margin: 0 auto 22px; max-width: 300px; }
+
+/* ── o código, em seis caixas ────────────────────────────────────────
+ *
+ * Seis e não um campo só: a pessoa está copiando do vidro do aparelho,
+ * letra a letra, e a caixa por letra é o que deixa ela conferir sem
+ * contar caractere. */
+.rotulo-codigo { font-size: 11px; letter-spacing: 1px; margin-bottom: 7px; }
+.codigo { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr));
+          gap: 5px; margin-bottom: 12px; }
+.codigo input {
+  height: 49px; border: 2px solid var(--tinta); background: var(--caixa);
+  color: var(--tinta); text-align: center; text-transform: uppercase;
+  font: 700 20px/1 var(--sem); padding: 0;
+  width: 100%; min-width: 0;   /* o campo cabe na coluna, e não o contrário */
+}
+.erro { color: var(--risco); font: 700 12px/1.4 var(--sem); margin: 0 0 12px; }
+
+/* O bloco de vincular respira: colado no cartão do aparelho, o rótulo
+   "CÓDIGO DO APARELHO" parecia legenda do cartão de cima. */
+#vincular { margin-top: 26px; }
+
+/* ── o aparelho na lista ─────────────────────────────────────────────
+ * Grid de três: o desenho, o nome, e a seta. */
+.aparelho {
+  border: 2px solid var(--tinta); padding: 17px; margin-top: 22px;
+  display: grid; grid-template-columns: 40px minmax(0, 1fr) 18px; gap: 12px;
+  align-items: center;
+}
+/* O device_id é uma palavra de 17 caracteres sem espaço: sem isto ele
+   empurra a coluna do meio e leva o cartão para fora da tela. */
+.aparelho .meta { overflow-wrap: anywhere; }
+.mini-tinto { width: 34px; height: 49px; border: 2px solid var(--tinta); }
+.aparelho .nome { font: 700 17px/1.05 var(--serifa); margin-bottom: 5px; }
+.aparelho .meta { font-size: 11px; color: var(--fraca); }
+
+.fatos { border: 2px solid var(--tinta); padding: 0 15px; }
+.fato { display: flex; justify-content: space-between; gap: 12px;
+        padding: 13px 0; border-bottom: 1px solid var(--sombra);
+        min-width: 0; }
+.fato:last-child { border-bottom: 0; }
+.fato .rotulo { color: var(--fraca); font-size: 12px; }
+.fato .valor { font-weight: 700; }
+
+/* ── a estante ───────────────────────────────────────────────────────
+ * Capa em proporção de livro, borda firme, e o estado embaixo. */
+.filtros { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
+.filtros button {
+  border: 1px solid var(--tinta); background: var(--caixa); color: var(--tinta);
+  padding: 8px 10px; font: 700 12px/1 var(--sem); cursor: pointer;
+}
+.filtros button[aria-pressed="true"] { background: var(--tinta); color: var(--papel); }
+.filtros .direita { margin-left: auto; }
+
+.estante { display: grid; gap: 14px;
+           grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr)); }
+/* Coluna, para o "Remover" cair no PÉ do cartão: dois cartões lado a
+   lado têm alturas diferentes — um tem a etiqueta "NO DISPOSITIVO" e o
+   outro não —, e com o botão logo depois do texto ele ficava numa altura
+   em cada um. */
+.obra { border: 2px solid var(--tinta); background: var(--caixa); padding: 12px;
+        display: flex; flex-direction: column; align-self: start; }
+.obra-resumo {
+  border: 0; padding: 0; background: transparent; color: inherit;
+  text-align: left; display: flex; flex-direction: column; cursor: pointer;
+  font: inherit;
+}
+.obra .capa {
+  aspect-ratio: 2 / 3; border: 2px solid var(--tinta); margin-bottom: 10px;
+  display: grid; place-items: center; font: 900 34px/1 var(--serifa);
+  background: var(--papel);
+}
+.obra .capa img, .revisao .capa img {
+  width: 100%; height: 100%; display: block; object-fit: contain;
+}
+.obra .nome { font: 700 15px/1.1 var(--serifa); }
+.obra .autor { font-size: 11px; color: var(--fraca); margin-top: 3px; }
+.obra .estado { font-size: 11px; color: var(--fraca); margin-top: 8px; }
+.obra .aqui {
+  font: 700 10px/1 var(--sem); letter-spacing: .5px; margin-top: 8px;
+  border: 2px solid var(--tinta); display: inline-block; padding: 5px 7px;
+}
+.abrir-detalhes {
+  margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--sombra);
+  width: 100%; font: 700 10px/1 var(--sem); letter-spacing: .4px;
+}
+.obra-resumo[aria-expanded="true"] .abrir-detalhes { background: var(--tinta);
+  color: var(--papel); padding: 8px; }
+.obra-detalhes { border-top: 2px solid var(--tinta); margin-top: 10px;
+  padding-top: 12px; }
+.obra-detalhes .sinopse { margin: 0 0 12px; font: 14px/1.5 var(--serifa); }
+.obra-detalhes dl { margin: 0; display: grid; gap: 7px; }
+.obra-detalhes dl div { display: flex; justify-content: space-between; gap: 12px;
+  border-top: 1px solid var(--sombra); padding-top: 6px; }
+.obra-detalhes dt { color: var(--fraca); font-size: 10px; text-transform: uppercase; }
+.obra-detalhes dd { margin: 0; font-size: 11px; font-weight: 700; text-align: right; }
+.obra .remover {
+  margin-top: auto; padding-top: 10px; width: 100%; border: 0; border-top: 1px solid var(--sombra);
+  background: transparent; color: var(--fraca); padding: 8px 0 0;
+  /* o `padding-top` de cima soma com este: o traço fica colado no texto
+     mais alto e o rótulo respira embaixo dele */
+  font: 700 11px/1 var(--sem); cursor: pointer;
+}
+
+/* As anotações: faixas horizontais, o título numa linha só. A coluna é
+   `minmax(0, 1fr)`: sem isso o título comprido, que não quebra, alargava
+   o card além da tela no celular — e a data sumia pela borda. */
+.notas { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.anotacao { border: 2px solid var(--tinta); background: var(--caixa); padding: 12px; }
+.anotacao-resumo {
+  border: 0; padding: 0; background: transparent; color: inherit; font: inherit;
+  width: 100%; display: flex; align-items: baseline; gap: 12px; cursor: pointer;
+  text-align: left;
+}
+.anotacao .nome {
+  flex: 1; min-width: 0; font: 700 15px/1.2 var(--serifa);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.anotacao .quando { font-size: 11px; color: var(--fraca); white-space: nowrap; }
+.anotacao-resumo[aria-expanded="true"] .nome { white-space: normal; }
+
+/* "mais N envios": um filete com o texto no meio, que abre e fecha o resto
+   do mês no lugar. */
+.mais-envios {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  margin: 12px 0 0; padding: 0; border: 0; background: transparent;
+  color: var(--tinta); font: 700 11px/1 var(--sem);
+  text-transform: uppercase; letter-spacing: .06em; cursor: pointer;
+}
+.mais-envios::before, .mais-envios::after {
+  content: ""; flex: 1; border-top: 2px solid var(--tinta);
+}
+.resto-do-mes { margin-top: 10px; }
+
+.vazio {
+  border: 2px dashed var(--fraca); padding: 30px 20px; text-align: center;
+  color: var(--fraca); font-size: 13px; line-height: 1.45;
+}
+
+/* O recibo do que acabou de acontecer: fundo cheio, como o desenho. */
+#aviso {
+  position: fixed; left: var(--margem); right: var(--margem);
+  bottom: calc(80px + env(safe-area-inset-bottom));
+  border: 2px solid var(--tinta); background: var(--tinta); color: var(--papel);
+  padding: 13px 14px; font: 700 13px/1.35 var(--sem); z-index: 10;
+  max-width: 44rem; margin: 0 auto;
+}
+@media (min-width: 62rem) { #aviso { bottom: 24px; } }
+
+/* ── o detalhe do aparelho ───────────────────────────────────────────
+ * Ele abre NO LUGAR, dentro de Minha Conta. Uma terceira rota faria de
+ * Dispositivos um destino permanente, e a especificação diz o contrário:
+ * ele mora dentro da conta. */
+button.aparelho {
+  width: 100%; text-align: left; cursor: pointer;
+  font: inherit; color: inherit; background: var(--papel);
+}
+.detalhe {
+  border: 2px solid var(--tinta); border-top: 0; padding: 17px;
+  display: grid; gap: 10px;
+}
+.campo {
+  border: 2px solid var(--tinta); background: var(--caixa); color: var(--tinta);
+  font: 700 15px/1 var(--sem); padding: 13px;
+}
+.botao.risco { border-color: var(--risco); color: var(--risco); }
+.detalhe .meta { font-size: 11px; color: var(--fraca); line-height: 1.45; }
+
+/* ── o envio em cinco passos ─────────────────────────────────────────
+ * A trilha mostra ONDE a pessoa está e quantos passos faltam: sem ela,
+ * cada tela parece a última. */
+.trilha {
+  list-style: none; display: flex; flex-wrap: wrap; gap: 6px;
+  padding: 0; margin: 0 0 22px; font: 700 10px/1 var(--sem);
+  letter-spacing: .5px; text-transform: uppercase;
+}
+.trilha li {
+  display: flex; align-items: center; gap: 6px;
+  border: 1px solid var(--fraca); padding: 7px 9px; color: var(--fraca);
+}
+.trilha li[aria-current="step"] {
+  border-color: var(--tinta); background: var(--tinta); color: var(--papel);
+}
+.trilha .numero {
+  border: 1px solid currentColor; width: 16px; height: 16px;
+  display: grid; place-items: center;
+}
+
+.ajuda { font-size: 13px; line-height: 1.5; color: var(--fraca);
+         margin: 0 0 16px; }
+.acoes { display: grid; grid-template-columns: minmax(0, 1fr);
+         gap: 8px; align-items: center; margin-top: 18px; }
+.acoes .botao { width: 100%; min-width: 0; }
+
+@media (min-width: 36rem) {
+  .acoes { grid-template-columns: repeat(2, minmax(0, max-content)); }
+  .acoes .botao { width: auto; }
+}
+
+/* O mesmo compasso de três pontos usado no aparelho. A conversão é
+   local e determinística no servidor, mas PDF/DOCX grande ainda pode
+   levar alguns segundos; tela parada pareceria toque perdido. */
+.carregando {
+  min-height: 180px; border: 2px solid var(--tinta); padding: 22px;
+  display: grid; place-content: center; justify-items: center;
+  gap: 13px; text-align: center;
+}
+.carregando small { color: var(--fraca); max-width: 31ch; }
+.pontos { display: flex; gap: 7px; height: 9px; align-items: center; }
+.pontos i {
+  display: block; width: 7px; height: 7px; background: var(--tinta);
+  animation: ponto 900ms ease-in-out infinite;
+}
+.pontos i:nth-child(2) { animation-delay: 150ms; }
+.pontos i:nth-child(3) { animation-delay: 300ms; }
+@keyframes ponto {
+  0%, 60%, 100% { transform: translateY(0); opacity: .35; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+input[type="file"] {
+  border: 2px dashed var(--tinta); background: var(--caixa);
+  padding: 22px; width: 100%; font: 13px/1.4 var(--sem); color: var(--tinta);
+}
+
+.revisao { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 14px;
+           align-items: start; margin-bottom: 14px; }
+.revisao .capa {
+  aspect-ratio: 2/3; border: 2px solid var(--tinta); background: var(--papel);
+  display: grid; place-items: center; font: 900 30px/1 var(--serifa);
+}
+/* Um título sem espaço — e eles existem, o nome do arquivo vira título
+   quando o EPUB não traz um — não pode empurrar a coluna. */
+.revisao .nome, .obra .nome { overflow-wrap: anywhere; }
+.revisao .nome { font: 700 19px/1.05 var(--serifa); }
+.revisao .autor, .revisao .meta { font-size: 12px; color: var(--fraca); margin-top: 4px; }
+
+/* A AMOSTRA é a prova de que a conversão deu certo. Ela vem em serifa
+   porque é assim que ela vai ser lida no aparelho. */
+.amostra {
+  border-left: 4px solid var(--tinta); margin: 0 0 18px; padding: 4px 0 4px 14px;
+  font: 15px/1.6 var(--serifa); max-height: 12rem; overflow: auto;
+}
+
+.recusa, .pronto { border: 2px solid var(--tinta); padding: 18px; }
+.recusa .titulo, .pronto .titulo { font: 700 19px/1.1 var(--serifa); margin-bottom: 8px; }
+.recusa p, .pronto p { font-size: 13px; line-height: 1.5; color: var(--fraca);
+                       margin: 0 0 16px; }

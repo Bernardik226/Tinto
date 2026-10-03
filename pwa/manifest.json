@@ -1,0 +1,31 @@
+{
+  "name": "Tinto App",
+  "short_name": "Tinto",
+  "id": "/e",
+  "start_url": "/e",
+  "scope": "/e",
+  "display": "standalone",
+  "background_color": "#16150f",
+  "theme_color": "#16150f",
+  "description": "O aplicativo do Tinto: vincula o aparelho à sua conta Google.",
+  "icons": [
+    {
+      "src": "/e/icone-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/e/icone-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/e/icone-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

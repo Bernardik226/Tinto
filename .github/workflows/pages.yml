@@ -1,0 +1,55 @@
+# A demo do navegador: o firmware em WebAssembly, no GitHub Pages.
+#
+# Mesmo servidor de mentira do `testes.yml`: o `.wasm` publicado carrega o
+# endereço e o QR de quem compila, e aqui ninguém compila com o endereço de
+# verdade.
+name: demo
+
+on:
+  push:
+    branches: [master]
+    paths: ["firmware/**", "Makefile", ".github/workflows/pages.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  demo:
+    # Pages grátis só existe em repo público; privado, o job pula em vez de
+    # falhar — check vermelho barra o deploy do servidor.
+    if: ${{ !github.event.repository.private }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.publica.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: um servidor de mentira, só para o build fechar
+        run: |
+          sed 's|https://mude-isto.exemplo.com|https://demo.exemplo.invalid|' \
+            firmware/main/servidor.exemplo.h > firmware/main/servidor.h
+
+      # zig traz clang e a libc de wasm32-wasi num pacote só.
+      - name: o que o build precisa
+        run: pip install segno ziglang
+
+      - name: compilar e provar
+        run: |
+          make qr
+          make web ZIG="python -m ziglang"
+          node firmware/simulador/web/prova.mjs build/web/tinto.wasm
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+      - id: publica
+        uses: actions/deploy-pages@v4

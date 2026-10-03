@@ -1,0 +1,13 @@
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.4
+httpx==0.28.1
+pytest==8.3.4
+python-multipart==0.0.20
+
+# O texto de dentro do PDF, e só ele: `pypdf` é puro Python e não puxa
+# binário nenhum. Ele NÃO faz OCR, e é assim que se quer — PDF que é só
+# imagem é recusado com o motivo, porque adivinhar as letras seria
+# entregar um livro que a máquina inventou.
+pypdf==5.1.0
+Pillow==12.3.0

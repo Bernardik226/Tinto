@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang=pt-BR>
+<meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<title>Tinto · experimente</title>
+<style>
+ :root{ --papel:#dcd9d0; --fundo:#131614; --fraco:#8b9390; --linha:#3a423e; --texto:#dce1de; }
+ body{ background:var(--fundo); color:var(--texto); font:14px/1.5 ui-monospace,monospace;
+       margin:0; min-height:100vh; display:flex; gap:34px; align-items:center;
+       justify-content:center; padding:20px 16px; box-sizing:border-box; flex-wrap:wrap; }
+ canvas{ image-rendering:pixelated; border:1px solid rgba(255,255,255,.35);
+         background:var(--papel); max-width:100%; touch-action:manipulation; }
+ .col{ display:flex; flex-direction:column; gap:12px; }
+ h1{ font-size:13px; letter-spacing:.2em; text-transform:uppercase;
+     color:var(--fraco); margin:0; font-weight:400; }
+ a{ color:var(--texto); }
+ table{ border-collapse:collapse; font-size:12.5px; }
+ td{ padding:3px 14px 3px 0; }
+ td:first-child{ color:var(--fraco); }
+ kbd{ background:#222725; border:1px solid var(--linha); border-bottom-width:2px;
+      border-radius:3px; padding:1px 6px; font:inherit; font-size:11px; }
+ .est{ color:var(--fraco); font-size:12px; max-width:34ch; line-height:1.6; }
+ button{ background:transparent; color:var(--texto); border:1px solid var(--linha);
+         padding:5px 11px; font:inherit; font-size:11.5px; cursor:pointer; }
+ button:hover{ border-color:#6a746f; }
+ button.on{ background:var(--texto); color:var(--fundo); border-color:var(--texto); }
+ #cenas{ display:flex; flex-wrap:wrap; gap:4px; max-width:34ch; }
+ #pad{ display:grid; grid-template-columns:repeat(3,56px); gap:6px; justify-content:center; }
+ #pad button{ height:44px; font-size:14px; }
+ .teclado{ display:block; }
+ @media (hover:none), (max-width:700px){
+   body{ gap:18px; }
+   .teclado{ display:none; }
+ }
+ @media (hover:hover) and (min-width:701px){ #pad{ display:none; } }
+</style>
+<div class=col>
+  <h1>Tinto · 240×416</h1>
+  <canvas id=t width=240 height=416></canvas>
+  <div id=pad>
+    <button data-k=6>MENU</button><button data-k=1>▲</button><button data-k=7>BACK</button>
+    <button data-k=3>◀</button><button data-k=5>OK</button><button data-k=4>▶</button>
+    <span></span><button data-k=2>▼</button><button data-k=8>● voz</button>
+  </div>
+</div>
+<div class=col>
+  <h1>Cenário</h1>
+  <div id=cenas></div>
+  <div class=teclado>
+  <h1 style="margin-top:14px">Controles</h1>
+  <table>
+   <tr><td><kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd></td><td>5-vias</td></tr>
+   <tr><td><kbd>Enter</kbd></td><td>OK — a ação da linha</td></tr>
+   <tr><td><kbd>Backspace</kbd></td><td>BACK — volta um nível</td></tr>
+   <tr><td><kbd>Tab</kbd></td><td>MENU — a gaveta</td></tr>
+   <tr><td><kbd>Espaço</kbd></td><td>voz; OK termina</td></tr>
+   <tr><td><kbd>0</kbd></td><td>power</td></tr>
+   <tr><td><kbd>D</kbd></td><td>docar / tirar da dock</td></tr>
+  </table>
+  </div>
+  <div class=est>
+    É o firmware de verdade, compilado para WebAssembly: as mesmas funções
+    que rodam na placa e nos testes. A voz é roteirizada — não há microfone
+    nem IA aqui, a nuvem responde sempre a mesma frase.
+    <br><a href="https://github.com/Bernardik226/Tinto">o código</a>
+  </div>
+</div>
+<script type=module>
+import { carrega, CENAS, fala, VOZ, MENU, VOLTAR, POWER, OK,
+         CIMA, BAIXO, ESQ, DIR } from './tinto.js';
+
+const cv = document.getElementById('t'), cx = cv.getContext('2d');
+const PAPEL = [220,217,208], TINTA = [22,21,15];
+const t = await carrega(await (await fetch('tinto.wasm')).arrayBuffer());
+let cena = 0;
+
+function escala(l, a){
+  // passo inteiro: fracionário borraria o pixel de 1 bit
+  const cabe = Math.min((innerHeight - 40) / a, (innerWidth - 34) / l);
+  return Math.max(1, Math.floor(cabe));
+}
+
+function pinta(){
+  const q = t.quadro();
+  if (cv.width !== q.l || cv.height !== q.a){ cv.width = q.l; cv.height = q.a; }
+  const e = escala(q.l, q.a);
+  cv.style.width = (q.l*e)+'px'; cv.style.height = (q.a*e)+'px';
+  const img = cx.createImageData(q.l, q.a), passo = (q.l+7)>>3;
+  for (let y=0; y<q.a; y++) for (let x=0; x<q.l; x++){
+    const bit = (q.bits[y*passo + (x>>3)] >> (7-(x&7))) & 1;
+    const c = bit ? TINTA : PAPEL, o = (y*q.l+x)*4;
+    img.data[o]=c[0]; img.data[o+1]=c[1]; img.data[o+2]=c[2]; img.data[o+3]=255;
+  }
+  cx.putImageData(img,0,0);
+  [...div.children].forEach((b, i) => b.classList.toggle('on', i === cena));
+}
+
+function tecla(k, ms = 0){
+  if (k === VOZ) fala(t); else t.tinto_evento(k, ms);
+  pinta();
+}
+
+const div = document.getElementById('cenas');
+CENAS.forEach(([nome, f], i) => {
+  const b = document.createElement('button');
+  b.textContent = nome;
+  b.onclick = () => { cena = i; f(t); pinta(); };
+  div.appendChild(b);
+});
+
+document.querySelectorAll('#pad button').forEach(b =>
+  b.onclick = () => tecla(+b.dataset.k));
+
+const TECLAS = { ArrowUp:CIMA, ArrowDown:BAIXO, ArrowLeft:ESQ, ArrowRight:DIR,
+                 Enter:OK, Tab:MENU, Backspace:VOLTAR, ' ':VOZ, '0':POWER };
+addEventListener('keydown', e => {
+  if (e.key.toLowerCase() === 'd'){ t.tinto_docar(t.tinto_docado() ? 0 : 1); return pinta(); }
+  const k = TECLAS[e.key];
+  if (!k) return;
+  e.preventDefault();       // nada de rolar a página
+  // segurado: 800 ms, acima do limiar de 600 que o app usa pro "volta pra home"
+  tecla(k, k === VOLTAR && e.shiftKey ? 800 : 0);
+});
+
+// O relógio anda de verdade: a gravação conta, o "em 4h46" desce.
+setInterval(() => { t.tinto_tick(); pinta(); }, 1000);
+addEventListener('resize', pinta);
+// botão clicado não fica com o foco: o Enter e o Espaço são do aparelho
+addEventListener('click', () => document.activeElement.blur());
+
+CENAS[0][1](t);
+pinta();
+</script>
