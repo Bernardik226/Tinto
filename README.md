@@ -1,3 +1,5 @@
+<p align="center"><b>🇧🇷 Português</b> · <a href="README.en.md">🇺🇸 English</a></p>
+
 <p align="center">
   <img src="docs/logos/capa.png" alt="Tinto" width="820">
 </p>
